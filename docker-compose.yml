@@ -1,0 +1,39 @@
+version: '3.8'  # Updated to the latest recommended version
+
+services:
+  demo-app:
+    build: .
+    container_name: demo-app
+    ports:
+      - "5000:5000"
+    restart: always
+    environment:
+      # Move sensitive variables to an .env file
+      - FLASK_ENV=production
+      - FLASK_RUN_HOST=0.0.0.0
+    # env_file: 
+    #   - .env  # Use this file for environment variables
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]  # Health check endpoint
+      interval: 30s   # Time between health checks
+      timeout: 10s    # Time before health check is considered failed
+      retries: 3      # Retries before container is considered unhealthy
+      start_period: 5s  # Grace period before checks start
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"  # Limit the container to 50% of a CPU core
+          memory: "512M"  # Limit the memory to 512MB
+    networks:
+      - demo-net
+    volumes:
+      - .:/app  # Mount the local directory to the container, adjust as needed
+
+networks:
+  demo-net:  # Custom network for better isolation
+    driver: bridge
