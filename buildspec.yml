@@ -36,7 +36,7 @@ phases:
     commands:
       - echo "Production BDD testing completed"
       - echo "Uploading test results to S3..."
-      - aws s3 cp test-results/ s3://${AWS_S3_BUCKET}/test-results/ --recursive
+      - aws s3 cp test-results/ s3://flaskbddtests/test-results/ --recursive
 
 reports:
   test_reports:
