@@ -1,26 +1,52 @@
 version: 0.2
 
+env:
+  variables:
+    ENV: "production"
+  secrets-manager:
+    DATABASE_URL: "prod/db-url-secret"
+    API_KEY: "prod/api-key-secret"
+    AWS_S3_BUCKET: ""
+
 phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - echo "Installing dependencies..."
+      - pip install -r requirements.txt
+
   pre_build:
     commands:
-      - ECR_REPO="703671904406.dkr.ecr.us-east-2.amazonaws.com/demo"
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_REPO
-      # - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)  # Optional: tag with short git commit hash
-      - IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
-      - echo Build started on `date`
+      - mkdir -p test-results
+      - echo "Setting up environment for production BDD testing..."
+      - export ENV=production
+      - export FLASK_ENV=production
+      - export $DATABASE_URL
+      - export $API_KEY
+      - nohup python app.py & # Start Flask app in the background
+      - sleep 5
+
   build:
     commands:
-      - echo Build the Docker image...
-      - docker build -t demo .
-      - docker tag demo:latest $ECR_REPO:latest
-      - docker tag demo:latest $ECR_REPO:$IMAGE_TAG
+      - echo "Running BDD tests..."
+      - behave --format json.pretty --outfile test-reports/behave-report.json || exit 1
+
   post_build:
     commands:
-      - echo Pushing the Docker image to ECR...
-      - docker push $ECR_REPO:latest
-      - docker push $ECR_REPO:$IMAGE_TAG
-      - echo Build completed on `date`
-      - printf '[{"name":"demo","imageUri":"%s"}]' $ECR_REPO:latest > imagedefinitions.json
+      - echo "Production BDD testing completed"
+      - echo "Uploading test results to S3..."
+      - aws s3 cp test-results/ s3://${AWS_S3_BUCKET}/test-results/ --recursive
+
+reports:
+  test_reports:
+    files:
+      - test-reports/behave-report.json
+    base-directory: test-results
+    file-format: JSON
+    discard-paths: yes
+
 artifacts:
-  files: imagedefinitions.json
+  files:
+    - "**/*"
+  discard-paths: yes

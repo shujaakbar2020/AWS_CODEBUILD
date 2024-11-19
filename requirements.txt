@@ -2,3 +2,7 @@ flask
 tzlocal
 requests
 gunicorn
+pytest
+pytest-bdd
+behave-json-formatter
+behave
