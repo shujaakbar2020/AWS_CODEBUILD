@@ -14,7 +14,6 @@ phases:
 
   pre_build:
     commands:
-      - mkdir -p test-results
       - echo "Setting up environment for production BDD testing..."
       - export ENV=production
       - export FLASK_ENV=production
@@ -23,6 +22,7 @@ phases:
 
   build:
     commands:
+      - mkdir -p test-results
       - echo "Running BDD tests..."
       - behave --format json.pretty --outfile test-reports/behave-report.json
 
