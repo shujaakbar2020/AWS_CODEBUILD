@@ -22,17 +22,15 @@ phases:
 
   build:
     commands:
-      - mkdir -p test-results
+      - mkdir -p test-reports
       - echo "Running BDD tests..."
       - behave --format json.pretty --outfile test-reports/behave-report.json
-      - pwd
-      - ls
 
   post_build:
     commands:
       - echo "Production BDD testing completed"
       - echo "Uploading test results to S3..."
-      - aws s3 cp test-results/ s3://flaskbddtests/test-results/ --recursive
+      - aws s3 cp test-reports/ s3://flaskbddtests/test-reports/ --recursive
 
 reports:
   test_reports:
