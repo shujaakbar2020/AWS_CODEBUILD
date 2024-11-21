@@ -24,7 +24,7 @@ phases:
   build:
     commands:
       - echo "Running BDD tests..."
-      - behave --format json.pretty --outfile test-reports/behave-report.json || exit 1
+      - behave --format json.pretty --outfile test-reports/behave-report.json
 
   post_build:
     commands:
