@@ -42,5 +42,5 @@ reports:
 
 artifacts:
   files:
-    - "**/*"
+    - test-reports/behave-report.json
   discard-paths: yes
